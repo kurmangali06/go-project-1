@@ -47,16 +47,17 @@ Swagger: http://route256.pavl.uk:8080/docs/
 - [x] Перед добавлением звать Product Service; если товара нет → 412 Precondition Failed
 - [x] Пробросить `ProductService` в `cart.Service` через интерфейс
 
-### T3. ListCart отдаёт name/price + total_price ⏳ ТЕКУЩАЯ
-- [ ] По каждому sku тянуть name/price из Product Service
-- [ ] В ответ добавить `items[i].name`, `items[i].price`, посчитать `total_price`
-- [ ] Формат ответа — как в примере ТЗ (мы остановились ровно здесь)
+### T3. ListCart отдаёт name/price + total_price ✅
+- [x] По каждому sku тянуть name/price из Product Service
+- [x] В ответ добавить `items[i].name`, `items[i].price`, посчитать `total_price`
+- [x] Формат ответа — как в примере ТЗ
 
-### T4. Clear → 204 No Content
-- [ ] Сейчас возвращает 200 (`handler.go:90`) — по ТЗ должно быть 204
+### T4. Clear → 204 No Content ✅
+- [x] `handler.go: Clear` возвращает 204 вместо 200
 
-### T5. Финализация cart.http
-- [ ] Дописать сценарии под name/price/total_price, поправить рассинхрон sku (5002/5000)
+### T5. Финализация cart.http ✅
+- [x] Дописаны ожидания name/price/total_price (пункты 4, 6), 204 для Clear (пункт 7)
+- [x] Добавлен сценарий 412 на неизвестном sku (пункт 13); рассинхрон sku не найден — уже был 5000 везде
 
 ## ДОП. ЗАДАНИЕ (10 баллов)
 - [ ] D1. Middleware логирования входящих HTTP-запросов
@@ -65,7 +66,6 @@ Swagger: http://route256.pavl.uk:8080/docs/
 
 ---
 ## Текущий шаг
-T1 и T2 закрыты. Сейчас на **T3**: ListCart должен тянуть name/price по каждому
-sku из Product Service и считать реальный total_price (сейчас там заглушка —
-сумма count вместо цены).
-Порядок: T1 ✅ → T2 ✅ → **T3 → T4 → T5**, затем доп. D1–D3.
+Основное задание (T1–T5) закрыто. Дальше — доп. задание: D1 (логирование), D2
+(валидация), D3 (ретраи в Product Service клиенте).
+Порядок: T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → D1 → D2 → D3.

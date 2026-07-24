@@ -1,11 +1,16 @@
 # Cart service — сценарии тестирования
 # В GoLand: нажми зелёный ▶ слева от каждого запроса.
 # Сервер должен быть запущен: make run-all
+# Product Service — мок (make run-mock), знает только про skuA/skuB:
+#   2008 -> "Клавиатура", price=1500
+#   5000 -> "Мышь", price=800
+# Любой другой sku мок отдаёт 404 -> AddItem должен вернуть 412.
 
 @host = http://localhost:8082
 @userId = 1007
 @skuA = 2008
 @skuB = 5000
+@skuUnknown = 9999
 
 ### health check (ждём 200)
 GET {{host}}/health
@@ -34,16 +39,19 @@ Content-Type: application/json
   "count": 1
 }
 
-### 4. Получить корзину (ждём 200; items по возрастанию sku: 2008 (count=5), затем 5000 (count=1))
+### 4. Получить корзину (ждём 200; items по возрастанию sku:
+### 2008 "Клавиатура" price=1500 count=5, затем 5000 "Мышь" price=800 count=1;
+### total_price = 1500*5 + 800*1 = 8300)
 GET {{host}}/user/{{userId}}/cart/list
 
 ### 5. Удалить товар A из корзины (ждём 200)
 DELETE {{host}}/user/{{userId}}/cart/{{skuA}}
 
-### 6. Получить корзину (ждём 200; остался только товар 5000)
+### 6. Получить корзину (ждём 200; остался только 5000 "Мышь" price=800 count=1;
+### total_price = 800)
 GET {{host}}/user/{{userId}}/cart/list
 
-### 7. Очистить корзину (ждём 200)
+### 7. Очистить корзину (ждём 204 No Content)
 DELETE {{host}}/user/{{userId}}/cart
 
 ### 8. Получить пустую корзину (ждём 404)
@@ -75,3 +83,11 @@ Content-Type: application/json
 
 ### 12. Список у несуществующего юзера (ждём 404)
 GET {{host}}/user/999999/cart/list
+
+### 13. Добавить товар, которого нет в Product Service (ждём 412 Precondition Failed)
+POST {{host}}/user/{{userId}}/cart/{{skuUnknown}}
+Content-Type: application/json
+
+{
+  "count": 1
+}

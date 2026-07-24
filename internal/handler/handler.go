@@ -94,7 +94,7 @@ func (h *Handler) Clear(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.service.Clear(userID)
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) ListCart(w http.ResponseWriter, r *http.Request) {
