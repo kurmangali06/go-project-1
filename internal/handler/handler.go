@@ -48,7 +48,7 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.AddItem(userID, skuID, req.Count); err != nil {
+	if err := h.service.AddItem(ctx, userID, skuID, req.Count); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

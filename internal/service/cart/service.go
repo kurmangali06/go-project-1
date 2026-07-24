@@ -1,17 +1,31 @@
 package cart
 
+import (
+	"context"
+	"go-project-1/internal/clients/product"
+)
+
 type cartRepository interface {
 	AddItem(userID, skuID int64, count uint16)
 	DeleteItem(userID, skuID int64)
 	Clear(userID int64)
 	GetItems(userID int64) map[int64]uint16
 }
-type Service struct {
-	repo cartRepository
+
+type productService interface {
+	GetProduct(ctx context.Context, sku int64) (product.Product, error)
 }
 
-func NewService(repo cartRepository) *Service {
-	return &Service{repo: repo}
+type Service struct {
+	repo     cartRepository
+	products productService
+}
+type ProductService interface {
+	GetProduct(ctx context.Context, sku int64) (product.Product, error)
+}
+
+func NewService(repo cartRepository, products productService) *Service {
+	return &Service{repo: repo, products: products}
 }
 func (s *Service) AddItem(userID, skuID int64, count uint16) error {
 	s.repo.AddItem(userID, skuID, count)

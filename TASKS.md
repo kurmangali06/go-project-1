@@ -38,12 +38,12 @@ Swagger: http://route256.pavl.uk:8080/docs/
 
 ## ОСНОВНОЕ ЗАДАНИЕ — осталось
 
-### T1. Клиент Product Service ⏳ ТЕКУЩАЯ
-- [ ] Пакет `internal/clients/product`: `GetProduct(ctx, sku) (name, price, error)`
-- [ ] POST на `get_product`, токен из ENV (не коммитить)
-- [ ] Таймаут, обработка не-200, `ErrNotFound` для несуществующего sku
+### T1. Клиент Product Service ✅
+- [x] Пакет `internal/clients/product`: `GetProduct(ctx, sku) (Product, error)`
+- [x] POST на `get_product`, таймаут 2s, `ErrProductNotFound` на 404
+- [ ] Токен из ENV (сейчас передаётся в `New` — подключим при вызове из main)
 
-### T2. AddItem проверяет существование товара
+### T2. AddItem проверяет существование товара ⏳ ТЕКУЩАЯ
 - [ ] Перед добавлением звать Product Service; если товара нет → 412 Precondition Failed
 - [ ] Пробросить `ProductService` в `cart.Service` через интерфейс
 
