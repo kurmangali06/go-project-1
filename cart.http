@@ -1,0 +1,77 @@
+# Cart service — сценарии тестирования
+# В GoLand: нажми зелёный ▶ слева от каждого запроса.
+# Сервер должен быть запущен: make run-all
+
+@host = http://localhost:8082
+@userId = 1007
+@skuA = 2008
+@skuB = 5000
+
+### health check (ждём 200)
+GET {{host}}/health
+
+### 1. Добавить товар A, count=3 (ждём 200)
+POST {{host}}/user/{{userId}}/cart/{{skuA}}
+Content-Type: application/json
+
+{
+  "count": 3
+}
+
+### 2. Добавить тот же товар A ещё раз, count=2 (ждём 200; количество сложится -> 5)
+POST {{host}}/user/{{userId}}/cart/{{skuA}}
+Content-Type: application/json
+
+{
+  "count": 2
+}
+
+### 3. Добавить товар B, count=1 (ждём 200)
+POST {{host}}/user/{{userId}}/cart/{{skuB}}
+Content-Type: application/json
+
+{
+  "count": 1
+}
+
+### 4. Получить корзину (ждём 200; items по возрастанию sku: 2008 (count=5), затем 5000 (count=1))
+GET {{host}}/user/{{userId}}/cart/list
+
+### 5. Удалить товар A из корзины (ждём 200)
+DELETE {{host}}/user/{{userId}}/cart/{{skuA}}
+
+### 6. Получить корзину (ждём 200; остался только товар 5000)
+GET {{host}}/user/{{userId}}/cart/list
+
+### 7. Очистить корзину (ждём 200)
+DELETE {{host}}/user/{{userId}}/cart
+
+### 8. Получить пустую корзину (ждём 404)
+GET {{host}}/user/{{userId}}/cart/list
+
+### --- НЕГАТИВНЫЕ СЦЕНАРИИ ---
+
+### 9. Кривой user_id (не число) (ждём 400)
+POST {{host}}/user/abc/cart/{{skuA}}
+Content-Type: application/json
+
+{
+  "count": 1
+}
+
+### 10. Кривой sku_id (не число) (ждём 400)
+POST {{host}}/user/{{userId}}/cart/xyz
+Content-Type: application/json
+
+{
+  "count": 1
+}
+
+### 11. Битое тело запроса (ждём 400)
+POST {{host}}/user/{{userId}}/cart/{{skuA}}
+Content-Type: application/json
+
+не-json
+
+### 12. Список у несуществующего юзера (ждём 404)
+GET {{host}}/user/999999/cart/list
