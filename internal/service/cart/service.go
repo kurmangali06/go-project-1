@@ -3,6 +3,7 @@ package cart
 import (
 	"context"
 	"errors"
+	"sort"
 
 	"go-project-1/internal/clients/product"
 )
@@ -19,7 +20,12 @@ type cartRepository interface {
 type productService interface {
 	GetProduct(ctx context.Context, sku int64) (product.Product, error)
 }
-
+type CartItem struct {
+	SkuID int64
+	Name  string
+	Count uint16
+	Price uint32
+}
 type Service struct {
 	repo     cartRepository
 	products productService
@@ -49,6 +55,25 @@ func (s *Service) Clear(userID int64) {
 	s.repo.Clear(userID)
 }
 
-func (s *Service) GetItems(userID int64) map[int64]uint16 {
-	return s.repo.GetItems(userID)
+func (s *Service) GetItems(ctx context.Context, userID int64) ([]CartItem, uint32, error) {
+	raw := s.repo.GetItems(userID)
+	skus := make([]int64, 0, len(raw))
+	for sku := range raw {
+		skus = append(skus, sku)
+	}
+	sort.Slice(skus, func(i, j int) bool { return skus[i] < skus[j] })
+
+	items := make([]CartItem, 0, len(skus))
+	var totalPrice uint32
+	for _, sku := range skus {
+		count := raw[sku]
+
+		p, err := s.products.GetProduct(ctx, sku)
+		if err != nil {
+			return nil, 0, err
+		}
+		items = append(items, CartItem{SkuID: sku, Name: p.Name, Count: count, Price: p.Price})
+		totalPrice += p.Price * uint32(count)
+	}
+	return items, totalPrice, nil
 }

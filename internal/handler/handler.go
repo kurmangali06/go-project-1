@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"go-project-1/internal/service/cart"
-	"log"
 	"net/http"
-	"sort"
 	"strconv"
 )
 
@@ -15,12 +13,14 @@ type cartService interface {
 	AddItem(ctx context.Context, userID, skuID int64, count uint16) error
 	DeleteItem(userID, skuID int64)
 	Clear(userID int64)
-	GetItems(userID int64) map[int64]uint16
+	GetItems(ctx context.Context, userID int64) ([]cart.CartItem, uint32, error)
 }
 
 type item struct {
 	SkuID int64  `json:"sku_id"`
+	Name  string `json:"name"`
 	Count uint16 `json:"count"`
+	Price uint32 `json:"price"`
 }
 type listResponse struct {
 	Items      []item `json:"items"`
@@ -103,24 +103,20 @@ func (h *Handler) ListCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	items := h.service.GetItems(userID)
-	if len(items) == 0 {
+	cartItems, totalPrice, err := h.service.GetItems(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(cartItems) == 0 {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	skus := make([]int64, 0, len(items))
-	for sku := range items {
-		skus = append(skus, sku)
-	}
-	sort.Slice(skus, func(i, j int) bool { return skus[i] < skus[j] })
-	resp := listResponse{}
-	for _, sku := range skus {
-		count := items[sku]
-		resp.Items = append(resp.Items, item{SkuID: sku, Count: count})
-		resp.TotalPrice += uint32(count)
+	resp := listResponse{TotalPrice: totalPrice}
+	for _, ci := range cartItems {
+		resp.Items = append(resp.Items, item{SkuID: ci.SkuID, Name: ci.Name, Count: ci.Count, Price: ci.Price})
 	}
 
-	log.Printf("items: %v", items)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
