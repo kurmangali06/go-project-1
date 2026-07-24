@@ -1,16 +1,22 @@
 package main
 
 import (
+	"go-project-1/internal/handler"
+	"go-project-1/internal/repository/memory"
+	"go-project-1/internal/service/cart"
 	"log"
 	"net/http"
 )
 
 func main() {
+	repo := memory.NewRepository()
+	service := cart.NewService(repo)
+	h := handler.New(service)
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-
+	mux.HandleFunc("POST /user/{user_id}/cart/{sku_id}", h.AddItem)
+	mux.HandleFunc("DELETE /user/{user_id}/cart/{sku_id}", h.DeleteItem)
+	mux.HandleFunc("DELETE /user/{user_id}/cart", h.Clear)
+	mux.HandleFunc("GET /user/{user_id}/cart/list", h.ListCart)
 	server := &http.Server{
 		Addr:    ":8082",
 		Handler: mux,
