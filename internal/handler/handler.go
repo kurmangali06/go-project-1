@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"go-project-1/internal/service/cart"
 	"log"
 	"net/http"
 	"sort"
@@ -9,7 +12,7 @@ import (
 )
 
 type cartService interface {
-	AddItem(userID, skuID int64, count uint16) error
+	AddItem(ctx context.Context, userID, skuID int64, count uint16) error
 	DeleteItem(userID, skuID int64)
 	Clear(userID int64)
 	GetItems(userID int64) map[int64]uint16
@@ -48,7 +51,11 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.AddItem(ctx, userID, skuID, req.Count); err != nil {
+	if err := h.service.AddItem(r.Context(), userID, skuID, req.Count); err != nil {
+		if errors.Is(err, cart.ErrProductNotFound) {
+			http.Error(w, "product not found", http.StatusPreconditionFailed)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
