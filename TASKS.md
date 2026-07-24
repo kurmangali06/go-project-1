@@ -41,13 +41,13 @@ Swagger: http://route256.pavl.uk:8080/docs/
 ### T1. Клиент Product Service ✅
 - [x] Пакет `internal/clients/product`: `GetProduct(ctx, sku) (Product, error)`
 - [x] POST на `get_product`, таймаут 2s, `ErrProductNotFound` на 404
-- [ ] Токен из ENV (сейчас передаётся в `New` — подключим при вызове из main)
+- [x] Токен из ENV (`main.go`: `os.Getenv("PRODUCT_TOKEN")`)
 
-### T2. AddItem проверяет существование товара ⏳ ТЕКУЩАЯ
-- [ ] Перед добавлением звать Product Service; если товара нет → 412 Precondition Failed
-- [ ] Пробросить `ProductService` в `cart.Service` через интерфейс
+### T2. AddItem проверяет существование товара ✅
+- [x] Перед добавлением звать Product Service; если товара нет → 412 Precondition Failed
+- [x] Пробросить `ProductService` в `cart.Service` через интерфейс
 
-### T3. ListCart отдаёт name/price + total_price
+### T3. ListCart отдаёт name/price + total_price ⏳ ТЕКУЩАЯ
 - [ ] По каждому sku тянуть name/price из Product Service
 - [ ] В ответ добавить `items[i].name`, `items[i].price`, посчитать `total_price`
 - [ ] Формат ответа — как в примере ТЗ (мы остановились ровно здесь)
@@ -65,5 +65,7 @@ Swagger: http://route256.pavl.uk:8080/docs/
 
 ---
 ## Текущий шаг
-Мы дошли до **total_price** → он упирается в Product Service.
-Порядок: **T1 → T2 → T3 → T4 → T5**, затем доп. D1–D3.
+T1 и T2 закрыты. Сейчас на **T3**: ListCart должен тянуть name/price по каждому
+sku из Product Service и считать реальный total_price (сейчас там заглушка —
+сумма count вместо цены).
+Порядок: T1 ✅ → T2 ✅ → **T3 → T4 → T5**, затем доп. D1–D3.

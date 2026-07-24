@@ -17,7 +17,7 @@ func main() {
 		log.Fatal("PRODUCT_TOKEN is not set")
 	}
 	client := product.New("http://route256.pavl.uk:8080", token)
-	service := cart.NewService(repo)
+	service := cart.NewService(repo, client)
 	h := handler.New(service)
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /user/{user_id}/cart/{sku_id}", h.AddItem)
