@@ -12,8 +12,8 @@ var ErrProductNotFound = errors.New("product not found")
 
 type cartRepository interface {
 	AddItem(userID, skuID int64, count uint16)
-	DeleteItem(userID, skuID int64)
-	Clear(userID int64)
+	DeleteItem(userID, skuID int64) error
+	Clear(userID int64) error
 	GetItems(userID int64) map[int64]uint16
 }
 
@@ -48,11 +48,17 @@ func (s *Service) AddItem(ctx context.Context, userID, skuID int64, count uint16
 }
 
 func (s *Service) DeleteItem(userID, skuID int64) {
-	s.repo.DeleteItem(userID, skuID)
+	err := s.repo.DeleteItem(userID, skuID)
+	if err != nil {
+		return
+	}
 }
 
 func (s *Service) Clear(userID int64) {
-	s.repo.Clear(userID)
+	err := s.repo.Clear(userID)
+	if err != nil {
+		return
+	}
 }
 
 func (s *Service) GetItems(ctx context.Context, userID int64) ([]CartItem, uint32, error) {

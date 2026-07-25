@@ -11,8 +11,8 @@ import (
 
 type cartService interface {
 	AddItem(ctx context.Context, userID, skuID int64, count uint16) error
-	DeleteItem(userID, skuID int64)
-	Clear(userID int64)
+	DeleteItem(userID, skuID int64) error
+	Clear(userID int64) error
 	GetItems(ctx context.Context, userID int64) ([]cart.CartItem, uint32, error)
 }
 
@@ -35,8 +35,8 @@ func New(service cartService) *Handler {
 }
 
 func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
-	userID, skuID, done := checkID(w, r)
-	if done {
+	userID, skuID, err := checkID(w, r)
+	if err != nil {
 		return
 	}
 	var req struct {
@@ -63,27 +63,30 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
-	userID, skuID, done := checkID(w, r)
-	if done {
+	userID, skuID, err := checkID(w, r)
+	if err != nil {
 		return
 	}
 
-	h.service.DeleteItem(userID, skuID)
+	err = h.service.DeleteItem(userID, skuID)
+	if err != nil {
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
-func checkID(w http.ResponseWriter, r *http.Request) (int64, int64, bool) {
+func checkID(w http.ResponseWriter, r *http.Request) (int64, int64, error) {
 	userID, err := strconv.ParseInt(r.PathValue("user_id"), 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return 0, 0, true
+		http.Error(w, "invalid user_id", http.StatusBadRequest)
+		return 0, 0, err
 	}
 	skuID, err := strconv.ParseInt(r.PathValue("sku_id"), 10, 64)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return 0, 0, true
+		http.Error(w, "invalid sku_id", http.StatusBadRequest)
+		return 0, 0, err
 	}
-	return userID, skuID, false
+	return userID, skuID, nil
 }
 
 func (h *Handler) Clear(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +96,10 @@ func (h *Handler) Clear(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.service.Clear(userID)
+	err = h.service.Clear(userID)
+	if err != nil {
+		return
+	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -109,8 +115,16 @@ func (h *Handler) ListCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(cartItems) == 0 {
-		w.WriteHeader(http.StatusNotFound)
-		return
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		err := json.NewEncoder(w).Encode(listResponse{
+			Items:      []item{},
+			TotalPrice: 0,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 	resp := listResponse{TotalPrice: totalPrice}
 	for _, ci := range cartItems {
@@ -118,7 +132,11 @@ func (h *Handler) ListCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+
 }
