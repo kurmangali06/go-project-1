@@ -11,8 +11,8 @@ import (
 
 type cartService interface {
 	AddItem(ctx context.Context, userID, skuID int64, count uint16) error
-	DeleteItem(userID, skuID int64) error
-	Clear(userID int64) error
+	DeleteItem(ctx context.Context, userID, skuID int64) error
+	Clear(ctx context.Context, userID int64) error
 	GetItems(ctx context.Context, userID int64) ([]cart.CartItem, uint32, error)
 }
 
@@ -68,8 +68,9 @@ func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.DeleteItem(userID, skuID)
+	err = h.service.DeleteItem(r.Context(), userID, skuID)
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -96,8 +97,9 @@ func (h *Handler) Clear(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.Clear(userID)
+	err = h.service.Clear(r.Context(), userID)
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -116,15 +118,11 @@ func (h *Handler) ListCart(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(cartItems) == 0 {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		err := json.NewEncoder(w).Encode(listResponse{
-			Items:      []item{},
-			TotalPrice: 0,
-		})
+		err := json.NewEncoder(w).Encode(listResponse{Items: []item{}, TotalPrice: 0})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		return
 	}
 	resp := listResponse{TotalPrice: totalPrice}
 	for _, ci := range cartItems {
