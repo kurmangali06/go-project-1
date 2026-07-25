@@ -13,7 +13,7 @@ func NewRepository() *Repository {
 	}
 }
 
-func (r *Repository) AddItem(userID, skuID int64, count uint16) {
+func (r *Repository) AddItem(userID, skuID int64, count uint16) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -22,18 +22,20 @@ func (r *Repository) AddItem(userID, skuID int64, count uint16) {
 	}
 
 	r.storage[userID][skuID] += count
+	return nil
 }
-func (r *Repository) DeleteItem(userID, skuID int64) {
+func (r *Repository) DeleteItem(userID, skuID int64) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, ok := r.storage[userID]; !ok {
-		return
+		return nil
 	}
 
 	delete(r.storage[userID], skuID)
 	if len(r.storage[userID]) == 0 {
 		delete(r.storage, userID)
 	}
+	return nil
 }
 
 func (r *Repository) GetItems(userID int64) map[int64]uint16 {
@@ -48,9 +50,10 @@ func (r *Repository) GetItems(userID int64) map[int64]uint16 {
 	}
 	return result
 }
-func (r *Repository) Clear(userID int64) {
+func (r *Repository) Clear(userID int64) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	delete(r.storage, userID)
+	return nil
 }
