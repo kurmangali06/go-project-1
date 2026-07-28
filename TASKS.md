@@ -74,16 +74,21 @@ Swagger: http://route256.pavl.uk:8080/docs/
 - [ ] Проверить: `git ls-files | grep env` → пусто
 - [ ] Завести `.env.example` с ключами без значений, чтобы было понятно, что настраивать
 
-### H2. Починить `cmd/productmock` → `make run-mock`
-- [ ] Папка `cmd/productmock` пустая → `make run-mock` падает с "no Go files"
-- [ ] Написать мок Product Service на :8080 (совпадает с `PRODUCT_SERVICE_URL` в `.env`)
-- [ ] `POST /get_product`, тело `{"token":..., "sku":...}` → `{"name":..., "price":...}`
-- [ ] Знает 2008 → «Клавиатура»/1500 и 5000 → «Мышь»/800 (как описано в `cart.http`)
-- [ ] Любой другой sku → 404 (чтобы `AddItem` отдал 412)
+### H2. Починить `cmd/productmock` → `make run-mock` ✅
+- [x] `cmd/productmock/main.go`: `POST /get_product`, каталог 2008/5000, 404 на остальное
+- [x] Порт через `MOCK_ADDR`, по умолчанию **:8081** — 8080 на машине занят node-процессом
+- [x] `.env` / `.env.example` / шапка `cart.http` переведены на :8081
+- [x] Прогнан end-to-end: 200 / 412 / total_price=5300 / 204 — всё сходится с ТЗ
 
 ### H3. Роут `/health`
 - [ ] В `cart.http` первый запрос — `GET /health`, но в `cmd/cart/main.go` такого
-      роута нет → сейчас будет 404. Либо добавить хендлер, либо убрать из `cart.http`
+      роута нет → сейчас 404 (подтверждено прогоном). Добавить хендлер или убрать из `cart.http`
+
+### H4. ListCart на пустой корзине отдаёт 200 вместо 404
+- [ ] ТЗ (таблица эндпоинтов выше) требует **404** на пустой корзине
+- [ ] `internal/handler/handler.go:119-126` отдаёт `200 {"items":[],"total_price":0}`
+- [ ] Регрессия появилась в коммите a1619f5 («refactor empty cart responses»)
+- [ ] Решить: чинить под ТЗ или сознательно оставить 200
 
 ---
 ## Текущий шаг

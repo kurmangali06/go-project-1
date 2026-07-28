@@ -1,7 +1,7 @@
 # Cart service — сценарии тестирования
 # В GoLand: нажми зелёный ▶ слева от каждого запроса.
 # Сервер должен быть запущен: make run-all
-# Product Service — мок (make run-mock), знает только про skuA/skuB:
+# Product Service — мок (make run-mock) на :8081, знает только про skuA/skuB:
 #   2008 -> "Клавиатура", price=1500
 #   5000 -> "Мышь", price=800
 # Любой другой sku мок отдаёт 404 -> AddItem должен вернуть 412.
