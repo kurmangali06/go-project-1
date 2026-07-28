@@ -80,15 +80,31 @@ Swagger: http://route256.pavl.uk:8080/docs/
 - [x] `.env` / `.env.example` / шапка `cart.http` переведены на :8081
 - [x] Прогнан end-to-end: 200 / 412 / total_price=5300 / 204 — всё сходится с ТЗ
 
-### H3. Роут `/health`
-- [ ] В `cart.http` первый запрос — `GET /health`, но в `cmd/cart/main.go` такого
-      роута нет → сейчас 404 (подтверждено прогоном). Добавить хендлер или убрать из `cart.http`
+### H3. Роут `/health` ✅
+- [x] Решено убрать `GET /health` из `cart.http` (роута в сервисе нет и не требуется по ТЗ)
 
 ### H4. ListCart на пустой корзине отдаёт 200 вместо 404
 - [ ] ТЗ (таблица эндпоинтов выше) требует **404** на пустой корзине
 - [ ] `internal/handler/handler.go:119-126` отдаёт `200 {"items":[],"total_price":0}`
 - [ ] Регрессия появилась в коммите a1619f5 («refactor empty cart responses»)
-- [ ] Решить: чинить под ТЗ или сознательно оставить 200
+- [ ] Чиним через тест: сначала падающий тест, потом правка хендлера
+
+## T6. ТЕСТЫ (в проекте нет ни одного `*_test.go`)
+
+### T6.1 `internal/handler/handler_test.go`
+- [ ] Стаб `cartService` (интерфейс уже объявлен в `handler.go:12-17` — тестировать легко)
+- [ ] `httptest.NewRequest` + `httptest.NewRecorder`, проверяем статус и тело
+- [ ] Кейсы: пустая корзина → 404 (H4), непустая → 200 + total_price,
+      `count=0` → 400, кривой `user_id` → 400, `ErrProductNotFound` → 412
+
+### T6.2 `internal/service/cart/service_test.go`
+- [ ] Стаб `productService`, реальный `memory.Repository`
+- [ ] Кейсы: AddItem неизвестного sku → `ErrProductNotFound`; GetItems считает
+      total_price и сортирует по sku ↑; ошибка Product Service пробрасывается наверх
+
+### T6.3 `internal/repository/memory/repository_test.go`
+- [ ] AddItem дважды на один sku суммирует count
+- [ ] Проверка на гонки: `go test -race ./...`
 
 ---
 ## Текущий шаг

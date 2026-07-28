@@ -12,8 +12,6 @@
 @skuB = 5000
 @skuUnknown = 9999
 
-### health check (ждём 200)
-GET {{host}}/health
 
 ### 1. Добавить товар A, count=3 (ждём 200)
 POST {{host}}/user/{{userId}}/cart/{{skuA}}
