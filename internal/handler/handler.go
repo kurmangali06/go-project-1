@@ -117,11 +117,7 @@ func (h *Handler) ListCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(cartItems) == 0 {
-		w.Header().Set("Content-Type", "application/json")
-		err := json.NewEncoder(w).Encode(listResponse{Items: []item{}, TotalPrice: 0})
-		if err != nil {
-			return
-		}
+		http.Error(w, "product not found", http.StatusNotFound)
 		return
 	}
 	resp := listResponse{TotalPrice: totalPrice}

@@ -83,19 +83,17 @@ Swagger: http://route256.pavl.uk:8080/docs/
 ### H3. Роут `/health` ✅
 - [x] Решено убрать `GET /health` из `cart.http` (роута в сервисе нет и не требуется по ТЗ)
 
-### H4. ListCart на пустой корзине отдаёт 200 вместо 404
-- [ ] ТЗ (таблица эндпоинтов выше) требует **404** на пустой корзине
-- [ ] `internal/handler/handler.go:119-126` отдаёт `200 {"items":[],"total_price":0}`
-- [ ] Регрессия появилась в коммите a1619f5 («refactor empty cart responses»)
-- [ ] Чиним через тест: сначала падающий тест, потом правка хендлера
+### H4. ListCart на пустой корзине отдаёт 200 вместо 404 ✅
+- [x] `handler.go:119-121` теперь возвращает 404 (регрессия из a1619f5 закрыта)
+- [ ] Мелочь: текст ошибки `"product not found"` → `"cart is empty"`
 
 ## T6. ТЕСТЫ (в проекте нет ни одного `*_test.go`)
 
 ### T6.1 `internal/handler/handler_test.go`
-- [ ] Стаб `cartService` (интерфейс уже объявлен в `handler.go:12-17` — тестировать легко)
-- [ ] `httptest.NewRequest` + `httptest.NewRecorder`, проверяем статус и тело
-- [ ] Кейсы: пустая корзина → 404 (H4), непустая → 200 + total_price,
-      `count=0` → 400, кривой `user_id` → 400, `ErrProductNotFound` → 412
+- [x] Стаб `cartService` с полями-функциями, хелпер `listRequest` (`SetPathValue`)
+- [x] `TestListCart_Empty` → 404, `TestListCart_NotEmpty` → 200 + total_price, `TestListCart_BadUserID` → 400
+- [ ] `TestAddItem`: таблица — `count=0` → 400, битый JSON → 400,
+      `cart.ErrProductNotFound` → 412, успех → 200
 
 ### T6.2 `internal/service/cart/service_test.go`
 - [ ] Стаб `productService`, реальный `memory.Repository`
