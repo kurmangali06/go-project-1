@@ -110,6 +110,25 @@ Swagger: http://route256.pavl.uk:8080/docs/
 - [x] Мутационная проверка: с убранным `mu.Lock()` тесты падают с DATA RACE — значит не холостые
 
 ---
+## ИТОГ СЕССИИ 28–29.07.2026
+
+**Состояние:** `go vet` чист, `go test -race ./...` зелёный, 18 тестов в 3 пакетах.
+
+| Пакет | Покрытие |
+|---|---|
+| `internal/service/cart` | 100.0% |
+| `internal/repository/memory` | 96.2% |
+| `internal/handler` | 26.6% |
+| `internal/clients/product` | 0% |
+| `internal/middleware` | 0% |
+
+**Осталось (по убыванию важности):**
+- [ ] `TestAddItem` в `internal/handler` таблицей — подтянет покрытие с 26.6%
+- [ ] Тесты `internal/clients/product` через `httptest.NewServer`
+- [ ] Текст `"product not found"` → `"cart is empty"` в `handler.go:120`
+- [ ] D2 (валидация) и D3 (ретраи) — пропущены сознательно
+
+---
 ## Текущий шаг
 Основное задание (T1–T5) закрыто, D1 сделан, D2/D3 сознательно пропущены.
 Порядок: T1 ✅ → T2 ✅ → T3 ✅ → T4 ✅ → T5 ✅ → D1 ✅ → **H1 → H2 → H3**.
