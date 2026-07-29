@@ -95,14 +95,19 @@ Swagger: http://route256.pavl.uk:8080/docs/
 - [ ] `TestAddItem`: таблица — `count=0` → 400, битый JSON → 400,
       `cart.ErrProductNotFound` → 412, успех → 200
 
-### T6.2 `internal/service/cart/service_test.go`
-- [ ] Стаб `productService`, реальный `memory.Repository`
-- [ ] Кейсы: AddItem неизвестного sku → `ErrProductNotFound`; GetItems считает
-      total_price и сортирует по sku ↑; ошибка Product Service пробрасывается наверх
+### T6.2 `internal/service/cart/service_test.go` ✅
+- [x] Стаб `productService` на `atomic.Int64` (GetItems ходит параллельно), реальный `memory.Repository`
+- [x] 7 тестов: AddItem неизвестного sku → `ErrProductNotFound` + ничего не записано;
+      сетевая ошибка НЕ подменяется на ErrProductNotFound; GetItems считает total_price,
+      сортирует по sku ↑, ходит ровно N раз; пустая корзина; ошибка Product Service
+      пробрасывается и данные не отдаются; DeleteItem/Clear
+- [x] Мутационная проверка: убрал `sort.Slice` → падает; сломал трансляцию ошибок → падает
 
-### T6.3 `internal/repository/memory/repository_test.go`
-- [ ] AddItem дважды на один sku суммирует count
-- [ ] Проверка на гонки: `go test -race ./...`
+### T6.3 `internal/repository/memory/repository_test.go` ✅
+- [x] 8 тестов: суммирование count, изоляция корзин разных юзеров, удаление
+      существующего/несуществующего sku, Clear, GetItems возвращает копию
+- [x] `TestAddItem_Concurrent` + `TestRepository_ConcurrentReadWrite`, `go test -race ./...` чист
+- [x] Мутационная проверка: с убранным `mu.Lock()` тесты падают с DATA RACE — значит не холостые
 
 ---
 ## Текущий шаг
