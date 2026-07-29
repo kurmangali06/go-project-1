@@ -30,7 +30,7 @@ func NewCatalog(source func(sku int64) (string, error)) *Catalog {
 func (c *Catalog) Lookup(sku int64) (string, error) {
 	name, err := c.source(sku)
 	if err != nil {
-		return "", fmt.Errorf("lookup sku %d: %v", sku, err)
+		return "", fmt.Errorf("lookup sku %d: %w", sku, err)
 	}
 	return name, nil
 }

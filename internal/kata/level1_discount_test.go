@@ -3,26 +3,23 @@ package kata
 import "testing"
 
 func TestDiscount(t *testing.T) {
-	// контракт в комментарии над Discount — тестируй по нему,
-	// в тело функции пока не смотри
-	got := Discount(100, 0)
-	var want uint32 = 100
-	if got != want {
-		t.Errorf("got %d, want %d", got, want)
+	tests := []struct {
+		name    string
+		price   uint32
+		percent uint8
+		want    uint32
+	}{
+		{name: "без скидки", price: 100, percent: 0, want: 100},
+		{name: "скидка 100%", price: 100, percent: 100, want: 0},
+		{name: "скидка больше 100%", price: 100, percent: 110, want: 0},
+		{name: "округление вниз", price: 999, percent: 10, want: 899},
 	}
-	got = Discount(100, 100)
-	want = 0
-	if got != want {
-		t.Errorf("got %d, want %d", got, want)
-	}
-	got = Discount(100, 110)
-	want = 0
-	if got != want {
-		t.Errorf("got %d, want %d", got, want)
-	}
-	got = Discount(999, 10)
-	want = 899
-	if got != want {
-		t.Errorf("got %d, want %d", got, want)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Discount(tt.price, tt.percent); got != tt.want {
+				t.Errorf("Discount(%d, %d) = %d, ожидали %d", tt.price, tt.percent, got, tt.want)
+			}
+		})
 	}
 }

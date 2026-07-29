@@ -22,10 +22,10 @@ var ErrInvalidSKU = errors.New("invalid sku")
 // Кейсов много — руками их писать больно, в этом и смысл упражнения.
 func ParseSKU(s string) (int64, error) {
 	sku, err := strconv.ParseInt(s, 10, 64)
-	if sku <= 0 {
-		return 1, ErrInvalidSKU
-	}
 	if err != nil {
+		return 0, ErrInvalidSKU
+	}
+	if sku <= 0 {
 		return 0, ErrInvalidSKU
 	}
 	return sku, nil
